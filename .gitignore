@@ -1,0 +1,10 @@
+.vscode
+*.pt
+*.set
+*.sh
+data_processing/
+code/experiments_logs/
+code/.ipynb_checkpoints/
+code/__pycache__/
+datasets/
+DATA/
