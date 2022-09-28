@@ -11,3 +11,4 @@ DATA/
 *wandb/
 *.ipynb_checkpoints/
 project.csv
+._*
