@@ -1,0 +1,69 @@
+# ===============
+# wandb
+# ===============
+
+project_name: "EXP2 - Cross-subject transfer"
+entity: "nightdude"
+
+
+# ===============
+# dataset
+# ===============
+
+relative_path_to_big_dataset: "../../DATA2/BIG_MI_12_datasets_53213samp.pt"
+targetDsName: 'BNCI001-2014.pt'
+test_subject: 1
+num_workers: 4
+
+# ===============
+# augmentations
+# ===============
+
+# Frequency domain augmentation params
+pertubFreqRatio: 0.1  # how many % of the coefficients will be boosted
+boostFreqBy: 0.1  # by how many % of the chan-specific max FFT coeff do we boost chosen coefficients
+remove_how_much: 0.1  # how many % of the chang-spec FFT coeffs will be zeroed
+
+# Time domain augmentation params
+## scaling
+scaling_mean: 2.0  # by how much on average the signal will be multiplied at each point
+scaling_sigma: 0.1  # by how much the multiplier will change
+
+## jitter
+noise_std: 0.3  # the standard deviation of zero-mean additive white noise
+
+## permutation
+max_seg: 12  # the number segments that each epoch will be split and shuffled along the time dimension
+
+## whether we randomly choose one of the augmentations for each data point or mix them
+superposition: False
+
+
+# ===============
+# model arch
+# ===============
+
+num_chan: 7
+kerLen: 31
+drop: 0.5
+F1: 8
+D: 2
+F2: 16
+emdim: 48
+
+# ===============
+# optimization
+# ===============
+epochs: 50
+batch_size: 96
+lr: 0.0003
+betas: [0.9, 0.99]
+weight_decay: 0.02
+
+
+# ===============
+# other
+# ===============
+
+modes: ['trained_unfrozen_fd', 'untrained_unfrozen_fd', 'trained_frozen_fd']
+relPathToFDWeights: '../../weights/EEGNet_7ch_BIGGER_pretrain_on_temp_augs_Flatten.wts'

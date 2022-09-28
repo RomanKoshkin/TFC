@@ -24,8 +24,19 @@ Use data-specific notebooks in `DATA2/` to fetch and pre-process each of hte MI 
 
 We wanted to see if pretraining EEGNet (ref), a simple convolutional network that has been shown to perform well on MI classification, would benefit classification performance on target data. 
 
-# 🔥Experiment 1. Within-Subject Transfer
-## Finetune on 1 subject's <a style="color:red">day 1</a>, test on <a style="color:red">day 2</a>
+## Pre-train the EEGNet feature extractor
+
+![alt text](assets/train_loss_finetuning.png)
+
+Use `EEGNet Contrastive Pretraining.ipynb` to pre-train the feature extractor.
+
+## Notes
+
+- For experiments 3 and 4 the `batch_size` is overridden and set to the size of the fine-tuning set
+
+## 🔥Experiment 1. Within-Subject Transfer
+
+Finetune on 1 subject's <a style="color:red">day 1</a>, test on <a style="color:red">day 2</a>
 
 ## Highlights
 
@@ -48,7 +59,7 @@ The curves below show the mean (over the subjects, and runs, 3 for each subject)
 
 # 🔥Experiment 2: Cross-Subject Transfer
 
-Fine-tune the feature extractor on all subjects except one held out, test on the held out one.
+Fine-tune the feature extractor on all subjects in the target dataset except one held out, test on the held out one.
 
 - `targetDsName = 'BNCI001-2014.pt'`
 - `pretrain_dataset`: all datasets but the `targetDsName`

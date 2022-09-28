@@ -74,9 +74,19 @@ def one_hot_encoding(X):
 
 
 def DataTransform_TD(sample, config):
-    aug_1 = jitter(sample.clone(), sigma=config.augmentation.noise_std)
-    aug_2 = scaling(sample.clone(), mu=config.augmentation.scaling_mean, sigma=config.augmentation.scaling_sigma)
-    aug_3 = permutation(sample.clone(), max_segments=config.augmentation.max_seg)
+    aug_1 = jitter(
+        sample.clone(),
+        sigma=config.noise_std,
+    )
+    aug_2 = scaling(
+        sample.clone(),
+        mu=config.scaling_mean,
+        sigma=config.scaling_sigma,
+    )
+    aug_3 = permutation(
+        sample.clone(),
+        max_segments=config.max_seg,
+    )
     if len(sample.shape) == 3:
         msk = torch.rand(size=(aug_1.shape[0], 3)).max(axis=1)[1]
         msk = F.one_hot(msk, num_classes=3)
@@ -97,10 +107,15 @@ def DataTransform_TD(sample, config):
 
 
 def DataTransform_FD(sample, config):
-    aug_1 = remove_frequency(sample.clone(), remove_how_much=config.augmentation.remove_how_much)
-    aug_2 = add_frequency(sample.clone(),
-                          pertubFreqRatio=config.augmentation.pertubFreqRatio,
-                          boostFreqBy=config.augmentation.boostFreqBy)
+    aug_1 = remove_frequency(
+        sample.clone(),
+        remove_how_much=config.remove_how_much,
+    )
+    aug_2 = add_frequency(
+        sample.clone(),
+        pertubFreqRatio=config.pertubFreqRatio,
+        boostFreqBy=config.boostFreqBy,
+    )
 
     if len(sample.shape) == 3:
         msk = torch.rand(size=(aug_1.shape[0], 2)).max(axis=1)[1]
@@ -108,7 +123,7 @@ def DataTransform_FD(sample, config):
         aug_F = aug_1 * msk[:, :, 0] + aug_2 * msk[:, :, 1]
         return aug_F, aug_1, aug_2, msk.squeeze()
     elif len(sample.shape) == 2:
-        if config.augmentation.superposition:
+        if config.superposition:
             msk = torch.rand(size=(1, 2))
             msk = F.softmax(msk, dim=1).unsqueeze(1)
         else:
@@ -117,6 +132,53 @@ def DataTransform_FD(sample, config):
         aug_F = aug_1 * msk[:, 0] + aug_2 * msk[:, 1]
         return aug_F, aug_1, aug_2, msk.squeeze()
 
+
+# ======================================================
+# below is what worked with the original Horrible config `config.augmentation.blah`
+# ======================================================
+
+# def DataTransform_TD(sample, config):
+#     aug_1 = jitter(sample.clone(), sigma=config.augmentation.noise_std)
+#     aug_2 = scaling(sample.clone(), mu=config.augmentation.scaling_mean, sigma=config.augmentation.scaling_sigma)
+#     aug_3 = permutation(sample.clone(), max_segments=config.augmentation.max_seg)
+#     if len(sample.shape) == 3:
+#         msk = torch.rand(size=(aug_1.shape[0], 3)).max(axis=1)[1]
+#         msk = F.one_hot(msk, num_classes=3)
+#         aug_T = aug_1 * msk[:, 0].reshape(-1, 1, 1) + aug_2 * msk[:, 1].reshape(-1, 1, 1) + aug_3 * msk[:, 2].reshape(
+#             -1, 1, 1)
+#         return aug_T, aug_1, aug_2, aug_3, msk.squeeze()
+#     elif len(sample.shape) == 2:
+#         msk = torch.randint(high=3, size=(1,))
+#         msk = F.one_hot(msk, num_classes=3)
+
+#         # now its just one of many, but you can make a mixture with softmax
+#         aug_T = aug_1 * msk[:, 0] + aug_2 * msk[:, 1] + aug_3 * msk[:, 2]
+#         return aug_T, aug_1, aug_2, aug_3, msk.squeeze()
+#         # msk = torch.randint(high=3, size=(1,))
+#         # return (aug_1, aug_2, aug_3)[msk], aug_1, aug_2, aug_3, msk
+#     else:
+#         raise ValueError('Wrong tensor shape. Must be either 2 or 3-d.')
+
+# def DataTransform_FD(sample, config):
+#     aug_1 = remove_frequency(sample.clone(), remove_how_much=config.augmentation.remove_how_much)
+#     aug_2 = add_frequency(sample.clone(),
+#                           pertubFreqRatio=config.augmentation.pertubFreqRatio,
+#                           boostFreqBy=config.augmentation.boostFreqBy)
+
+#     if len(sample.shape) == 3:
+#         msk = torch.rand(size=(aug_1.shape[0], 2)).max(axis=1)[1]
+#         msk = F.one_hot(msk, num_classes=2).unsqueeze(1).unsqueeze(-1)
+#         aug_F = aug_1 * msk[:, :, 0] + aug_2 * msk[:, :, 1]
+#         return aug_F, aug_1, aug_2, msk.squeeze()
+#     elif len(sample.shape) == 2:
+#         if config.augmentation.superposition:
+#             msk = torch.rand(size=(1, 2))
+#             msk = F.softmax(msk, dim=1).unsqueeze(1)
+#         else:
+#             msk = torch.rand(size=(1, 2)).max(axis=1)[1]
+#             msk = F.one_hot(msk, num_classes=2)
+#         aug_F = aug_1 * msk[:, 0] + aug_2 * msk[:, 1]
+#         return aug_F, aug_1, aug_2, msk.squeeze()
 
 # def DataTransform_TD(sample, config):
 #     """Weak and strong augmentations"""

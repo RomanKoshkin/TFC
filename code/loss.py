@@ -1,6 +1,51 @@
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+
+
+class CLIPLossX(nn.Module):
+
+    def __init__(self, device, batch_size, reduction="mean"):
+        super().__init__()
+        self.device = device
+        self.compute_similarity = nn.CosineSimilarity(dim=-1)
+        self._criterion = nn.CrossEntropyLoss(reduction=reduction)
+        # self.targets = torch.zeros(size=(batch_size, )).long() # that's for the slow method
+        self.registered_targets = False
+        self.batch_size = batch_size
+
+    def forward(self, x, y, fast=True, return_logits=False):
+        # batch_size = x.size(0)
+        if not self.registered_targets:
+            self.register_buffer('targets', torch.arange(self.batch_size, requires_grad=False).to(self.device))
+            self.registered_targets = True
+
+        if not fast:
+            # less efficient way
+            x_ = rearrange(x, 'b f t -> 1 b (f t)')
+            y_ = rearrange(y, 'b f t -> b 1 (f t)')
+            logits = self.compute_similarity(x_, y_)  # s
+
+            # unnecessary steps for the less efficient way (this might be needed for fancy contrastive losses)
+            # positives = torch.diag(similarity_matrix, 0).view(-1,1)
+            # negative_mask = torch.logical_not(torch.eye(batch_size).type(torch.bool))
+            # negatives = similarity_matrix[negative_mask].view(batch_size, -1)
+            # logits = torch.cat([positives, negatives], dim=1)
+
+        else:
+            # fast way
+            x = x.reshape(self.batch_size, -1)
+            y = y.reshape(self.batch_size, -1)
+            logits = torch.matmul(x, y.T)
+            # I don't know why yet, but normalization seems to be necessary to get sensible similarities (0, 1)
+            logits = logits / (x.norm(dim=-1) * y.norm(dim=-1))
+
+        # print(f"is_cuda self.targets {self.targets.is_cuda} logits {logits.is_cuda}")
+        if return_logits:
+            return logits, self._criterion(logits, self.targets)
+        else:
+            return self._criterion(logits, self.targets)
 
 
 class NTXentLoss(torch.nn.Module):
