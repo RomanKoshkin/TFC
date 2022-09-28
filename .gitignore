@@ -9,3 +9,5 @@ code/.ipynb_checkpoints/
 datasets/
 DATA/
 *wandb/
+*.ipynb_checkpoints/
+project.csv
